@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: php-refactoring-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: malfini_ecommerce_refactoring
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    command: --default-authentication-plugin=mysql_native_password
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php-refactoring-app
+    working_dir: /application
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/application
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
