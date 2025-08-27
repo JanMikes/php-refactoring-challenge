@@ -12,6 +12,7 @@ Hi! :-) This is place for ideas sharing + steps for the refactoring, basically a
 - Since this is really small "app", solving the challenge with AI would be extremely easy - I will pass this opportunity and train my own skills without AI this time.   
 - Generating the order number is definitely issue.
 - We will skip Git best practices (branching, merge requests etc) for sake of simplicity and to save time managing branches/pull requests for the challenge purposes.
+- The .dockerignore was incomplete + there was typo `test/` vs `tests/`
 
 ## The plan
 

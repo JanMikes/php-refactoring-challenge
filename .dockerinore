@@ -1,7 +1,15 @@
 .git
 .gitignore
 .dockerignore
+.editorconfig
+.github/
+.phpunit.cache/
+
+database/
 vendor/
+tests/
+
+init.sql
 README.md
-test/
+SOLVING.md
 *.log

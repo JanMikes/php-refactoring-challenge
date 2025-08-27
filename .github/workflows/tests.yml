@@ -1,0 +1,65 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: malfini_ecommerce_refactoring
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+          --default-authentication-plugin=mysql_native_password
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mysql, intl, pdo_mysql, json
+        coverage: none
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Wait for MySQL
+      run: |
+        until mysqladmin ping -h"127.0.0.1" -P3306 --silent; do
+          echo 'waiting for mysqld to be connectable...'
+          sleep 2
+        done
+
+    - name: Initialize database schema
+      run: |
+        mysql -h127.0.0.1 -P3306 -uroot -proot < database/schema.sql
+
+    - name: Run test suite
+      run: php vendor/bin/phpunit tests --colors=always --stderr
