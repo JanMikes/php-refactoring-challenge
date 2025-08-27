@@ -1,6 +1,8 @@
 {
   "name": "malfini/php-refactoring-challenge",
   "type": "project",
+  "description": "Project for challenging the refactoring skills!",
+  "lience": "MIT",
   "require": {
     "php": ">=8.0",
     "ext-pdo": "*",
