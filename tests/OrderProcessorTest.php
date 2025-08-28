@@ -17,7 +17,11 @@ class OrderProcessorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->db = new PDO('mysql:host=php-refactoring-mysql;dbname=malfini_ecommerce_refactoring', 'root', 'rootpassword');
+        $this->db = new PDO(
+            'mysql:host=' . $_ENV['MYSQL_HOST'] . ';dbname=' . $_ENV['MYSQL_DATABASE'],
+            $_ENV['MYSQL_USER'],
+            $_ENV['MYSQL_PASSWORD']
+        );
         $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $this->db->exec("DELETE FROM order_logs");

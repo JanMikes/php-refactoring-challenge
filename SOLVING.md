@@ -18,7 +18,8 @@ Hi! :-) This is place for ideas sharing + steps for the refactoring, basically a
 
 - CI - GH Actions workflow to run what we already have (the tests)
 - Install PHPStan - the PHP developer's best friend
-
+- First gotcha! Can't connect to database in CI because of hardcoded hostname in tests - lets fix it first before some refactoring, `vlucas/phpdotenv` is installed already. Náhoda? Nemyslím si!
+- Hell no! There is no XDEBUG installed. Probably will add that very soon - developing without is painful!
 
 ### Minor issues
 - `composer install` should be installed straight away - basically following the "convention over configuration", `docker compose up` should run for me fully prepared and ready-to-use application. Probably the best way to achieve that is docker entrypoint.
