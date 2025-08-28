@@ -15,6 +15,9 @@ jobs:
     services:
       mysql:
         image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: malfini_ecommerce_refactoring
         ports:
           - 3306:3306
         options: >-
