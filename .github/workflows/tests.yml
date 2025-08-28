@@ -2,20 +2,19 @@ name: Tests
 
 on:
   push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+
+env:
+  MYSQL_ROOT_PASSWORD: rootpassword
+  MYSQL_DATABASE: malfini_ecommerce_refactoring
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     services:
       mysql:
         image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: rootpassword
-          MYSQL_DATABASE: malfini_ecommerce_refactoring
         ports:
           - 3306:3306
         options: >-
@@ -59,7 +58,7 @@ jobs:
 
     - name: Initialize database schema
       run: |
-        mysql -h127.0.0.1 -P3306 -uroot -proot < database/schema.sql
+        mysql -h127.0.0.1 -P3306 -uroot -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < database/schema.sql
 
     - name: Run test suite
       run: php vendor/bin/phpunit tests --colors=always --stderr
