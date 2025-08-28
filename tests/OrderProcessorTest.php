@@ -18,9 +18,9 @@ class OrderProcessorTest extends TestCase
     protected function setUp(): void
     {
         $this->db = new PDO(
-            'mysql:host=127.0.0.1;dbname=' . $_ENV['MYSQL_DATABASE'],
-            'root',
-            'rootpassword'
+            'mysql:host=' . (getenv('MYSQL_HOST') ?: $_ENV['MYSQL_HOST']) . ';dbname=' . (getenv('MYSQL_DATABASE') ?: $_ENV['MYSQL_DATABASE']),
+            getenv('MYSQL_USER') ?: $_ENV['MYSQL_USER'],
+            getenv('MYSQL_PASSWORD') ?: $_ENV['MYSQL_PASSWORD']
         );
         $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
