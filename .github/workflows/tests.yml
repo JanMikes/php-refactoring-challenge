@@ -55,7 +55,7 @@ jobs:
 
     - name: Initialize database schema
       run: |
-        mysql -hMYSQL_HOST -P3306 -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < database/schema.sql
+        mysql -h$MYSQL_HOST -P3306 -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < database/schema.sql
 
     - name: Run test suite
       run: php vendor/bin/phpunit tests --colors=always --stderr
