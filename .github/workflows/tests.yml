@@ -5,7 +5,9 @@ on:
   pull_request:
 
 env:
-  MYSQL_ROOT_PASSWORD: rootpassword
+  MYSQL_HOST: localhost
+  MYSQL_USER: appuser
+  MYSQL_PASSWORD: apppassword
   MYSQL_DATABASE: malfini_ecommerce_refactoring
 
 jobs:
