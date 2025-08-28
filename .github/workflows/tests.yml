@@ -55,14 +55,14 @@ jobs:
 
     - name: Wait for MySQL
       run: |
-        until mysqladmin ping -h"127.0.0.1" -P3306 --silent; do
+        until mysqladmin ping -h"localhost" -P3306 --silent; do
           echo 'waiting for mysqld to be connectable...'
           sleep 2
         done
 
     - name: Initialize database schema
       run: |
-        mysql -h127.0.0.1 -P3306 -uroot -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < database/schema.sql
+        mysql -hMYSQL_HOST -P3306 -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < database/schema.sql
 
     - name: Run test suite
       run: php vendor/bin/phpunit tests --colors=always --stderr
