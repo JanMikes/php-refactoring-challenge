@@ -53,6 +53,13 @@ jobs:
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
 
+    - name: Wait for MySQL
+      run: |
+        until mysqladmin ping -h$MYSQL_HOST -P3306 --silent; do
+        echo 'waiting for mysqld to be connectable...'
+        sleep 2
+        done
+
     - name: Initialize database schema
       run: |
         mysql -h$MYSQL_HOST -P3306 -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < database/schema.sql
