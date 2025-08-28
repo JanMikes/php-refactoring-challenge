@@ -6,8 +6,8 @@ on:
 
 env:
   MYSQL_HOST: 127.0.0.1
-  MYSQL_USER: appuser
-  MYSQL_PASSWORD: apppassword
+  MYSQL_USER: root
+  MYSQL_PASSWORD: rootpassword
   MYSQL_DATABASE: malfini_ecommerce_refactoring
 
 jobs:
