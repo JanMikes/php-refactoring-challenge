@@ -4,15 +4,8 @@ declare(strict_types=1);
 
 namespace RefactoringChallenge\Ecommerce\Order;
 
-use PDO;
-
-readonly final class OrderItemsQuery
+interface OrderItemsQuery
 {
-    public function __construct(
-        private PDO $pdo,
-    ) {
-    }
-
     public function addOrderItem(
         int $orderId,
         int $productId,
@@ -21,16 +14,5 @@ readonly final class OrderItemsQuery
         float $totalPrice,
         string $productName,
         string $productSku,
-    ): void {
-        $stmt = $this->pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, product_name, product_sku) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([
-            $orderId,
-            $productId,
-            $quantity,
-            $unitPrice,
-            $totalPrice,
-            $productName,
-            $productSku,
-        ]);
-    }
+    ): void;
 }

@@ -22,6 +22,12 @@ use RefactoringChallenge\Notification\SpyNotifier;
 use RefactoringChallenge\Tech\Database\PDOFactory;
 use RefactoringChallenge\Ecommerce\Order\OrderQuery;
 use RefactoringChallenge\Ecommerce\Order\PDOOrderQuery;
+use RefactoringChallenge\Ecommerce\Order\OrderItemsQuery;
+use RefactoringChallenge\Ecommerce\Order\PDOOrderItemsQuery;
+use RefactoringChallenge\Ecommerce\Warehouse\ProductQuery;
+use RefactoringChallenge\Ecommerce\Warehouse\PDOProductQuery;
+use RefactoringChallenge\Ecommerce\Warehouse\InventoryQuery;
+use RefactoringChallenge\Ecommerce\Warehouse\PDOInventoryQuery;
 
 class ContainerFactory
 {
@@ -59,6 +65,9 @@ class ContainerFactory
         $container->add(EventDispatcherInterface::class, $eventDispatcher);
 
         $container->add(OrderQuery::class, $container->get(PDOOrderQuery::class));
+        $container->add(OrderItemsQuery::class, $container->get(PDOOrderItemsQuery::class));
+        $container->add(ProductQuery::class, $container->get(PDOProductQuery::class));
+        $container->add(InventoryQuery::class, $container->get(PDOInventoryQuery::class));
 
         return $container;
     }
