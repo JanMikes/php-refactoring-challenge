@@ -2,19 +2,24 @@
 
 declare(strict_types = 1);
 
-namespace RefactoringChallenge\Ecommerce\Order;
+namespace RefactoringChallenge\UseCase;
 
 use Psr\Log\LoggerInterface;
 use RefactoringChallenge\Ecommerce\Cart\CartItem;
 use RefactoringChallenge\Ecommerce\Customer\CustomerNotFound;
 use RefactoringChallenge\Ecommerce\Customer\CustomerQuery;
 use RefactoringChallenge\Ecommerce\MoneyCalculator;
+use RefactoringChallenge\Ecommerce\Order\OrderCreationFailed;
+use RefactoringChallenge\Ecommerce\Order\OrderItemsQuery;
+use RefactoringChallenge\Ecommerce\Order\OrderLogsQuery;
+use RefactoringChallenge\Ecommerce\Order\OrderNumberGenerator;
+use RefactoringChallenge\Ecommerce\Order\OrderQuery;
 use RefactoringChallenge\Ecommerce\Warehouse\InsufficientStock;
 use RefactoringChallenge\Ecommerce\Warehouse\InventoryQuery;
 use RefactoringChallenge\Ecommerce\Warehouse\ProductNotFound;
 use RefactoringChallenge\Ecommerce\Warehouse\ProductQuery;
 
-readonly final class OrderProcessor
+readonly final class PutOrderUseCase
 {
     public function __construct(
         private LoggerInterface $logger,
@@ -36,7 +41,7 @@ readonly final class OrderProcessor
      * @throws CustomerNotFound
      * @throws OrderCreationFailed
      */
-    public function processOrder(int $customerId, array $items, string $shippingAddress): int
+    public function handle(int $customerId, array $items, string $shippingAddress): int
     {
         $orderNumber = $this->orderNumberGenerator->next();
         $totalAmount = 0;

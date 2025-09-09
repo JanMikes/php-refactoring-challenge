@@ -2,25 +2,25 @@
 
 declare(strict_types = 1);
 
-namespace RefactoringChallenge\Tests\Ecommerce\Order;
+namespace RefactoringChallenge\Tests\UseCase;
 
 use PDO;
 use PHPUnit\Framework\TestCase;
 use RefactoringChallenge\Ecommerce\Cart\CartItem;
-use RefactoringChallenge\Ecommerce\Order\OrderProcessor;
 use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
 use RefactoringChallenge\Tests\TestingDatabase;
+use RefactoringChallenge\UseCase\PutOrderUseCase;
 
-class OrderProcessorTest extends TestCase
+class PutOrderUseCaseTest extends TestCase
 {
     private PDO $db;
-    private OrderProcessor $orderProcessor;
+    private PutOrderUseCase $orderProcessor;
 
     protected function setUp(): void
     {
         $container = ContainerFactory::get();
         $this->db = $container->get(PDO::class);
-        $this->orderProcessor = $container->get(OrderProcessor::class);
+        $this->orderProcessor = $container->get(PutOrderUseCase::class);
 
         TestingDatabase::prepareFreshData();
     }
@@ -30,7 +30,7 @@ class OrderProcessorTest extends TestCase
         $items = [new CartItem(productId: 99, quantity: 2)];
         $shippingAddress = "Testovací 123, Testov";
 
-        $orderId = $this->orderProcessor->processOrder(99, $items, $shippingAddress);
+        $orderId = $this->orderProcessor->handle(99, $items, $shippingAddress);
 
         $stmt = $this->db->prepare("SELECT * FROM orders WHERE id = ?");
         $stmt->execute([$orderId]);

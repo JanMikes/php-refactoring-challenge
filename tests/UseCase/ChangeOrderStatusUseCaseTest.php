@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace RefactoringChallenge\Tests\UseCase;
 
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
-use RefactoringChallenge\Ecommerce\Order\OrderLogsQuery;
 use RefactoringChallenge\Ecommerce\Order\OrderNotFound;
 use RefactoringChallenge\Ecommerce\Order\OrderQuery;
 use RefactoringChallenge\Ecommerce\Order\OrderStatus;
