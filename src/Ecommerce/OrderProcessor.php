@@ -9,6 +9,8 @@ use Psr\Log\LoggerInterface;
 use RefactoringChallenge\Ecommerce\Cart\CartItem;
 use RefactoringChallenge\Ecommerce\Customer\CustomerNotFound;
 use RefactoringChallenge\Ecommerce\Customer\CustomerQuery;
+use RefactoringChallenge\Ecommerce\Order\OrderNotFound;
+use RefactoringChallenge\Ecommerce\Order\OrderQuery;
 use RefactoringChallenge\Ecommerce\Warehouse\InsufficientStock;
 use RefactoringChallenge\Ecommerce\Warehouse\InventoryQuery;
 use RefactoringChallenge\Ecommerce\Warehouse\ProductNotFound;
@@ -22,6 +24,7 @@ readonly class OrderProcessor
         private ProductQuery $productQuery,
         private InventoryQuery $inventoryQuery,
         private CustomerQuery $customerQuery,
+        private OrderQuery $orderQuery,
         private OrderNumberGenerator $orderNumberGenerator,
     ) {
     }
@@ -103,20 +106,14 @@ readonly class OrderProcessor
         ]);
     }
 
+    /**
+     * @throws OrderNotFound
+     */
     public function updateOrderStatus(int $orderId, OrderStatus $newStatus): void
     {
-        $stmt = $this->db->prepare("SELECT status FROM orders WHERE id = ?");
-        $stmt->execute([$orderId]);
-        $order = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$order) {
-            throw new \Exception("Order not found");
-        }
-
-        $oldStatus = OrderStatus::from($order['status']);
-
-        $stmt = $this->db->prepare("UPDATE orders SET status = ? WHERE id = ?");
-        $stmt->execute([$newStatus->value, $orderId]);
+        $oldStatus = $this->orderQuery->getOrderStatus($orderId);
+        
+        $this->orderQuery->changeOrderStatus($orderId, $newStatus);
 
         $stmt = $this->db->prepare("INSERT INTO order_logs (order_id, action, old_status, new_status, description) VALUES (?, 'status_change', ?, ?, 'Status updated')");
         $stmt->execute([$orderId, $oldStatus, $newStatus]);
@@ -126,7 +123,7 @@ readonly class OrderProcessor
         }
     }
 
-    private function sendShippingNotification($orderId): void
+    private function sendShippingNotification(int $orderId): void
     {
         // In real system, there could be event and handler for it
 
