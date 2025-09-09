@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace RefactoringChallenge\Ecommerce\Order;
 
 use PDO;
-use RefactoringChallenge\Ecommerce\OrderStatus;
 
 readonly final class OrderQuery
 {

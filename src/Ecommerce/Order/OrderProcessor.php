@@ -2,15 +2,14 @@
 
 declare(strict_types = 1);
 
-namespace RefactoringChallenge\Ecommerce;
+namespace RefactoringChallenge\Ecommerce\Order;
 
 use PDO;
 use Psr\Log\LoggerInterface;
 use RefactoringChallenge\Ecommerce\Cart\CartItem;
 use RefactoringChallenge\Ecommerce\Customer\CustomerNotFound;
 use RefactoringChallenge\Ecommerce\Customer\CustomerQuery;
-use RefactoringChallenge\Ecommerce\Order\OrderNotFound;
-use RefactoringChallenge\Ecommerce\Order\OrderQuery;
+use RefactoringChallenge\Ecommerce\MoneyCalculator;
 use RefactoringChallenge\Ecommerce\Warehouse\InsufficientStock;
 use RefactoringChallenge\Ecommerce\Warehouse\InventoryQuery;
 use RefactoringChallenge\Ecommerce\Warehouse\ProductNotFound;

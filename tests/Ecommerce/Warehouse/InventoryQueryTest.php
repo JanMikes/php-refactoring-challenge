@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace Ecommerce\Warehouse;
+namespace RefactoringChallenge\Tests\Ecommerce\Warehouse;
 
 use PHPUnit\Framework\TestCase;
 use RefactoringChallenge\Ecommerce\Warehouse\InventoryQuery;
@@ -25,9 +25,9 @@ class InventoryQueryTest extends TestCase
     public function testGetStockReturnsCorrectQuantity(): void
     {
         $productId = 99;
-        
+
         $stock = $this->inventoryQuery->getStock($productId);
-        
+
         $this->assertEquals(10, $stock);
     }
 
@@ -36,7 +36,7 @@ class InventoryQueryTest extends TestCase
         $nonExistingProductId = 999999;
 
         $this->expectException(ProductNotFound::class);
-        
+
         $this->inventoryQuery->getStock($nonExistingProductId);
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace Ecommerce\Customer;
+namespace RefactoringChallenge\Tests\Ecommerce\Customer;
 
 use PHPUnit\Framework\TestCase;
 use RefactoringChallenge\Ecommerce\Customer\CustomerNotFound;
@@ -25,9 +25,9 @@ class CustomerQueryTest extends TestCase
     public function testGetByIdReturnsCorrectCustomer(): void
     {
         $customerId = 99;
-        
+
         $customer = $this->customerQuery->getById($customerId);
-        
+
         $this->assertEquals($customerId, $customer->id);
         $this->assertEquals('test@example.com', $customer->email);
         $this->assertEquals('Tester', $customer->firstName);
@@ -36,9 +36,9 @@ class CustomerQueryTest extends TestCase
     public function testGetByIdThrowsExceptionForNonExistingCustomer(): void
     {
         $nonExistingCustomerId = 999999;
-        
+
         $this->expectException(CustomerNotFound::class);
-        
+
         $this->customerQuery->getById($nonExistingCustomerId);
     }
 }

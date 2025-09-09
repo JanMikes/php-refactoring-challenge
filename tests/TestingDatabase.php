@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace RefactoringChallenge\Tests;
 
 use PDO;
-use RefactoringChallenge\Ecommerce\OrderStatus;
 use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
 
 class TestingDatabase

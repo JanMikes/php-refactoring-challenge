@@ -2,13 +2,12 @@
 
 declare(strict_types = 1);
 
-namespace Ecommerce\Order;
+namespace RefactoringChallenge\Tests\Ecommerce\Order;
 
-use PDO;
 use PHPUnit\Framework\TestCase;
 use RefactoringChallenge\Ecommerce\Order\OrderNotFound;
 use RefactoringChallenge\Ecommerce\Order\OrderQuery;
-use RefactoringChallenge\Ecommerce\OrderStatus;
+use RefactoringChallenge\Ecommerce\Order\OrderStatus;
 use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
 use RefactoringChallenge\Tests\TestingDatabase;
 

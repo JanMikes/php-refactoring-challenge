@@ -2,12 +2,12 @@
 
 declare(strict_types = 1);
 
-namespace RefactoringChallenge\Tests\Ecommerce;
+namespace RefactoringChallenge\Tests\Ecommerce\Order;
 
 use PDO;
 use PHPUnit\Framework\TestCase;
 use RefactoringChallenge\Ecommerce\Cart\CartItem;
-use RefactoringChallenge\Ecommerce\OrderProcessor;
+use RefactoringChallenge\Ecommerce\Order\OrderProcessor;
 use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
 use RefactoringChallenge\Tests\TestingDatabase;
 
