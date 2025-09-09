@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace RefactoringChallenge\Ecommerce\Order;
 
-use PDO;
 use Psr\Log\LoggerInterface;
 use RefactoringChallenge\Ecommerce\Cart\CartItem;
 use RefactoringChallenge\Ecommerce\Customer\CustomerNotFound;
@@ -15,15 +14,16 @@ use RefactoringChallenge\Ecommerce\Warehouse\InventoryQuery;
 use RefactoringChallenge\Ecommerce\Warehouse\ProductNotFound;
 use RefactoringChallenge\Ecommerce\Warehouse\ProductQuery;
 
-readonly class OrderProcessor
+readonly final class OrderProcessor
 {
     public function __construct(
-        private PDO $db,
         private LoggerInterface $logger,
         private ProductQuery $productQuery,
         private InventoryQuery $inventoryQuery,
         private CustomerQuery $customerQuery,
         private OrderQuery $orderQuery,
+        private OrderItemsQuery $orderItemsQuery,
+        private OrderLogsQuery $orderLogsQuery,
         private OrderNumberGenerator $orderNumberGenerator,
     ) {
     }
@@ -43,6 +43,7 @@ readonly class OrderProcessor
 
         foreach ($items as $item) {
             $price = $this->productQuery->getPrice($item->productId);
+
             $availableStock = $this->inventoryQuery->getStock($item->productId);
 
             if ($availableStock < $item->quantity) {
@@ -53,39 +54,30 @@ readonly class OrderProcessor
                 );
             }
 
+            // TODO: lock mechanism as soon as the stock is available
+
             $totalAmount += MoneyCalculator::multiply($price, $item->quantity);
         }
 
-        $stmt = $this->db->prepare("INSERT INTO orders (customer_id, order_number, total_amount, shipping_address, status) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$customerId, $orderNumber, $totalAmount, $shippingAddress, OrderStatus::Pending->value]);
-        $lastInsertedId = $this->db->lastInsertId();
-
-        if ($lastInsertedId === false) {
-            throw new OrderCreationFailed();
-        }
-
-        $orderId = (int) $lastInsertedId;
+        $orderId = $this->orderQuery->createOrder($customerId, $orderNumber, $totalAmount, $shippingAddress);
 
         foreach ($items as $item) {
             $product = $this->productQuery->getById($item->productId);
 
-            $stmt = $this->db->prepare("INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, product_name, product_sku) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([
+            $this->orderItemsQuery->addOrderItem(
                 $orderId,
                 $item->productId,
                 $item->quantity,
                 $product->price,
                 MoneyCalculator::multiply($product->price, $item->quantity),
                 $product->name,
-                $product->sku
-            ]);
+                $product->sku,
+            );
 
-            $stmt = $this->db->prepare("UPDATE inventory SET quantity_available = quantity_available - ?, quantity_reserved = quantity_reserved + ? WHERE product_id = ?");
-            $stmt->execute([$item->quantity, $item->quantity, $item->productId]);
+            $this->inventoryQuery->reserveStock($item->productId, $item->quantity);
         }
 
-        $stmt = $this->db->prepare("INSERT INTO order_logs (order_id, action, new_status, description) VALUES (?, 'created', 'pending', 'Order created')");
-        $stmt->execute([$orderId]);
+        $this->orderLogsQuery->logOrderCreated($orderId);
 
         $this->sendOrderConfirmationEmail($customerId, $orderId);
 
@@ -114,8 +106,10 @@ readonly class OrderProcessor
         
         $this->orderQuery->changeOrderStatus($orderId, $newStatus);
 
-        $stmt = $this->db->prepare("INSERT INTO order_logs (order_id, action, old_status, new_status, description) VALUES (?, 'status_change', ?, ?, 'Status updated')");
-        $stmt->execute([$orderId, $oldStatus, $newStatus]);
+        // In real system, there could be domain event StatusChanged
+        // That would handle both logging and sending notification
+
+        $this->orderLogsQuery->logStatusChange($orderId, $oldStatus, $newStatus);
 
         if ($newStatus === OrderStatus::Shipped) {
             $this->sendShippingNotification($orderId);
@@ -124,8 +118,6 @@ readonly class OrderProcessor
 
     private function sendShippingNotification(int $orderId): void
     {
-        // In real system, there could be event and handler for it
-
         $this->logger->info("Sending shipping notification", [
             'order_id' => $orderId,
         ]);

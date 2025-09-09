@@ -46,4 +46,21 @@ readonly final class OrderQuery
         $stmt = $this->pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
         $stmt->execute([$newStatus->value, $orderId]);
     }
+
+    /**
+     * @throws OrderCreationFailed
+     */
+    public function createOrder(int $customerId, string $orderNumber, float $totalAmount, string $shippingAddress): int
+    {
+        $stmt = $this->pdo->prepare("INSERT INTO orders (customer_id, order_number, total_amount, shipping_address, status) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$customerId, $orderNumber, $totalAmount, $shippingAddress, OrderStatus::Pending->value]);
+        
+        $lastInsertedId = $this->pdo->lastInsertId();
+        
+        if ($lastInsertedId === false) {
+            throw new OrderCreationFailed();
+        }
+        
+        return (int) $lastInsertedId;
+    }
 }

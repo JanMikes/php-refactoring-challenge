@@ -64,4 +64,20 @@ class OrderQueryTest extends TestCase
         
         $this->orderQuery->changeOrderStatus($nonExistingOrderId, $newStatus);
     }
+
+    public function testCreateOrderReturnsOrderId(): void
+    {
+        $customerId = 99;
+        $orderNumber = 'TEST-ORDER-CREATE';
+        $totalAmount = 150.75;
+        $shippingAddress = 'Test Shipping Address';
+        
+        $orderId = $this->orderQuery->createOrder($customerId, $orderNumber, $totalAmount, $shippingAddress);
+        
+        $this->assertGreaterThan(0, $orderId);
+        
+        // Verify the order was created with correct status
+        $status = $this->orderQuery->getOrderStatus($orderId);
+        $this->assertEquals(OrderStatus::Pending, $status);
+    }
 }

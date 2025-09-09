@@ -34,4 +34,16 @@ readonly final class InventoryQuery
 
         return $data['quantity_available'];
     }
+
+    /**
+     * @throws ProductNotFound
+     */
+    public function reserveStock(int $productId, int $quantity): void
+    {
+        // First verify the product exists
+        $this->getStock($productId);
+
+        $stmt = $this->pdo->prepare("UPDATE inventory SET quantity_available = quantity_available - ?, quantity_reserved = quantity_reserved + ? WHERE product_id = ?");
+        $stmt->execute([$quantity, $quantity, $productId]);
+    }
 }
