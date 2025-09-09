@@ -5,11 +5,13 @@ declare(strict_types = 1);
 namespace RefactoringChallenge;
 
 use PDO;
+use Psr\Log\LoggerInterface;
 
 readonly class OrderProcessor
 {
     public function __construct(
         private PDO $db,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -70,13 +72,16 @@ readonly class OrderProcessor
         return $orderId;
     }
 
-    private function sendOrderConfirmationEmail($customerId, $orderId)
+    private function sendOrderConfirmationEmail($customerId, $orderId): void
     {
         $stmt = $this->db->prepare("SELECT email, first_name FROM customers WHERE id = ?");
         $stmt->execute([$customerId]);
         $customer = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        error_log("Sending email to: " . $customer['email'] . " for order: " . $orderId);
+        $this->logger->info('Sending email', [
+            'email' => $customer['email'],
+            'orderId' => $orderId,
+        ]);
     }
 
     public function updateOrderStatus($orderId, $newStatus)
@@ -102,8 +107,12 @@ readonly class OrderProcessor
         }
     }
 
-    private function sendShippingNotification($orderId)
+    private function sendShippingNotification($orderId): void
     {
-        error_log("Sending shipping notification for order: " . $orderId);
+        // In real system, there could be event and handler for it
+
+        $this->logger->info("Sending shipping notification", [
+            'order_id' => $orderId,
+        ]);
     }
 }

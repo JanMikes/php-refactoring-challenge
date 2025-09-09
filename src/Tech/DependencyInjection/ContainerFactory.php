@@ -7,6 +7,8 @@ namespace RefactoringChallenge\Tech\DependencyInjection;
 use League\Container\Container;
 use League\Container\ReflectionContainer;
 use PDO;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use RefactoringChallenge\Tech\Database\PDOFactory;
 
 class ContainerFactory
@@ -28,6 +30,7 @@ class ContainerFactory
 
         $container->add(PDOFactory::class, $pdoFactory);
         $container->add(PDO::class, $pdoFactory->create());
+        $container->add(LoggerInterface::class, new NullLogger());
 
         // Enable autowiring and autoregistration for known instances
         $container->delegate(new ReflectionContainer());
