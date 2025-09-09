@@ -96,30 +96,4 @@ readonly final class OrderProcessor
             'orderId' => $orderId,
         ]);
     }
-
-    /**
-     * @throws OrderNotFound
-     */
-    public function updateOrderStatus(int $orderId, OrderStatus $newStatus): void
-    {
-        $oldStatus = $this->orderQuery->getOrderStatus($orderId);
-        
-        $this->orderQuery->changeOrderStatus($orderId, $newStatus);
-
-        // In real system, there could be domain event StatusChanged
-        // That would handle both logging and sending notification
-
-        $this->orderLogsQuery->logStatusChange($orderId, $oldStatus, $newStatus);
-
-        if ($newStatus === OrderStatus::Shipped) {
-            $this->sendShippingNotification($orderId);
-        }
-    }
-
-    private function sendShippingNotification(int $orderId): void
-    {
-        $this->logger->info("Sending shipping notification", [
-            'order_id' => $orderId,
-        ]);
-    }
 }

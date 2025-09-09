@@ -9,6 +9,8 @@ use League\Container\ReflectionContainer;
 use PDO;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use RefactoringChallenge\Notification\Notifier;
+use RefactoringChallenge\Notification\SpyNotifier;
 use RefactoringChallenge\Tech\Database\PDOFactory;
 
 class ContainerFactory
@@ -31,6 +33,7 @@ class ContainerFactory
         $container->add(PDOFactory::class, $pdoFactory);
         $container->add(PDO::class, $pdoFactory->create());
         $container->add(LoggerInterface::class, new NullLogger());
+        $container->add(Notifier::class, new SpyNotifier());
 
         // Enable autowiring and autoregistration for known instances
         $container->delegate(new ReflectionContainer());
