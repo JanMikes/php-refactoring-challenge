@@ -4,14 +4,12 @@ declare(strict_types = 1);
 
 namespace RefactoringChallenge\UseCase;
 
-use Psr\Log\LoggerInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use RefactoringChallenge\Ecommerce\Cart\CartItem;
-use RefactoringChallenge\Ecommerce\Customer\CustomerNotFound;
-use RefactoringChallenge\Ecommerce\Customer\CustomerQuery;
 use RefactoringChallenge\Ecommerce\MoneyCalculator;
+use RefactoringChallenge\Ecommerce\Order\OrderCreated;
 use RefactoringChallenge\Ecommerce\Order\OrderCreationFailed;
 use RefactoringChallenge\Ecommerce\Order\OrderItemsQuery;
-use RefactoringChallenge\Ecommerce\Order\OrderLogsQuery;
 use RefactoringChallenge\Ecommerce\Order\OrderNumberGenerator;
 use RefactoringChallenge\Ecommerce\Order\OrderQuery;
 use RefactoringChallenge\Ecommerce\Warehouse\InsufficientStock;
@@ -22,14 +20,12 @@ use RefactoringChallenge\Ecommerce\Warehouse\ProductQuery;
 readonly final class PutOrderUseCase
 {
     public function __construct(
-        private LoggerInterface $logger,
         private ProductQuery $productQuery,
         private InventoryQuery $inventoryQuery,
-        private CustomerQuery $customerQuery,
         private OrderQuery $orderQuery,
         private OrderItemsQuery $orderItemsQuery,
-        private OrderLogsQuery $orderLogsQuery,
         private OrderNumberGenerator $orderNumberGenerator,
+        private EventDispatcherInterface $eventDispatcher,
     ) {
     }
 
@@ -38,7 +34,6 @@ readonly final class PutOrderUseCase
      *
      * @throws ProductNotFound
      * @throws InsufficientStock
-     * @throws CustomerNotFound
      * @throws OrderCreationFailed
      */
     public function handle(int $customerId, array $items, string $shippingAddress): int
@@ -64,6 +59,7 @@ readonly final class PutOrderUseCase
             $totalAmount += MoneyCalculator::multiply($price, $item->quantity);
         }
 
+        // TODO: Transaction start
         $orderId = $this->orderQuery->createOrder($customerId, $orderNumber, $totalAmount, $shippingAddress);
 
         foreach ($items as $item) {
@@ -81,24 +77,15 @@ readonly final class PutOrderUseCase
 
             $this->inventoryQuery->reserveStock($item->productId, $item->quantity);
         }
+        // TODO: Transaction end
 
-        $this->orderLogsQuery->logOrderCreated($orderId);
-
-        $this->sendOrderConfirmationEmail($customerId, $orderId);
+        $this->eventDispatcher->dispatch(
+            new OrderCreated(
+                orderId: $orderId,
+                customerId: $customerId,
+            ),
+        );
 
         return $orderId;
-    }
-
-    /**
-     * @throws CustomerNotFound
-     */
-    private function sendOrderConfirmationEmail(int $customerId, int $orderId): void
-    {
-        $customer = $this->customerQuery->getById($customerId);
-
-        $this->logger->info('Sending email', [
-            'email' => $customer->email,
-            'orderId' => $orderId,
-        ]);
     }
 }
