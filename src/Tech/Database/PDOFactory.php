@@ -8,14 +8,27 @@ use PDO;
 
 readonly final class PDOFactory
 {
-    public function create(): PDO
+    /**
+     * @param array<string, array{
+     *     host: string,
+     *     database: string,
+     *     user: string,
+     *     password: string,
+     * }> $configurations
+     */
+    public function __construct(
+        private array $configurations,
+    ) {
+    }
+
+    public function create(string $connectionName = 'default'): PDO
     {
-        // If we needed to work with multiple connections, then create($connectionName) and accepting credentials for multiple would be needed
+        $config = $this->configurations[$connectionName];
 
         $connection = new PDO(
-            'mysql:host=' . (getenv('MYSQL_HOST') ?: $_ENV['MYSQL_HOST']) . ';dbname=' . (getenv('MYSQL_DATABASE') ?: $_ENV['MYSQL_DATABASE']),
-            getenv('MYSQL_USER') ?: $_ENV['MYSQL_USER'],
-            getenv('MYSQL_PASSWORD') ?: $_ENV['MYSQL_PASSWORD']
+            'mysql:host=' . $config['host'] . ';dbname=' . $config['database'],
+            $config['user'],
+            $config['password'],
         );
 
         $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

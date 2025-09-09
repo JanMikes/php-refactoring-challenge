@@ -7,7 +7,7 @@ namespace RefactoringChallenge\Tests;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use RefactoringChallenge\OrderProcessor;
-use RefactoringChallenge\Tech\Database\PDOFactory;
+use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
 
 class OrderProcessorTest extends TestCase
 {
@@ -18,7 +18,8 @@ class OrderProcessorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->db = (new PDOFactory())->create();
+        $container = ContainerFactory::get();
+        $this->db = $container->get(PDO::class);
 
         $this->db->exec("DELETE FROM order_logs");
         $this->db->exec("DELETE FROM order_items");
