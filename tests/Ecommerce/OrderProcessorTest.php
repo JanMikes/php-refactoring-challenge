@@ -8,10 +8,10 @@ use PDO;
 use PHPUnit\Framework\TestCase;
 use RefactoringChallenge\Ecommerce\OrderProcessor;
 use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
+use RefactoringChallenge\Tests\TestingDatabase;
 
 class OrderProcessorTest extends TestCase
 {
-
     private PDO $db;
     private OrderProcessor $orderProcessor;
 
@@ -21,18 +21,7 @@ class OrderProcessorTest extends TestCase
         $this->db = $container->get(PDO::class);
         $this->orderProcessor = $container->get(OrderProcessor::class);
 
-        $this->db->exec("DELETE FROM order_logs");
-        $this->db->exec("DELETE FROM order_items");
-        $this->db->exec("DELETE FROM orders");
-        $this->db->exec("UPDATE inventory SET quantity_available = 10, quantity_reserved = 0 WHERE product_id = 1");
-        $this->db->exec("DELETE FROM customers WHERE id = 99");
-        $this->db->exec("DELETE FROM products WHERE id = 99");
-        $this->db->exec("DELETE FROM inventory WHERE product_id = 99");
-
-        $this->db->exec("INSERT IGNORE INTO customers (id, email, first_name) VALUES (99, 'test@example.com', 'Tester')");
-        $this->db->exec("INSERT IGNORE INTO products (id, name, price, sku) VALUES (99, 'Test Produkt', 123.45, 'TEST-99')");
-        $this->db->exec("INSERT IGNORE INTO inventory (product_id, quantity_available, quantity_reserved) VALUES (99, 10, 0)");
-
+        TestingDatabase::prepareFreshData();
     }
 
     public function testProcessOrderSuccess()

@@ -13,11 +13,13 @@ readonly class OrderProcessor
         private PDO $db,
         private LoggerInterface $logger,
         private ProductQuery $orderQuery,
+        private InventoryQuery $inventoryQuery,
     ) {
     }
 
     /**
      * @throws ProductNotFound
+     * @throws InsufficientStock
      */
     public function processOrder($customerId, $items, $shippingAddress)
     {
@@ -26,15 +28,18 @@ readonly class OrderProcessor
 
         foreach ($items as $item) {
             $price = $this->orderQuery->getPrice($item['product_id']);
-            $totalAmount += $price * $item['quantity'];
+            $requestedQuantity = $item['quantity'];
+            $availableStock = $this->inventoryQuery->getStock($item['product_id']);
 
-            $stmt = $this->db->prepare("SELECT quantity_available FROM inventory WHERE product_id = ?");
-            $stmt->execute([$item['product_id']]);
-            $inventory = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($inventory['quantity_available'] < $item['quantity']) {
-                throw new \Exception("Not enough stock");
+            if ($availableStock < $item['quantity']) {
+                throw new InsufficientStock(
+                    productId: $item['product_id'],
+                    requestedQuantity: $requestedQuantity,
+                    stockAvailable: $availableStock,
+                );
             }
+
+            $totalAmount += $price * $requestedQuantity;
         }
 
         $stmt = $this->db->prepare("INSERT INTO orders (customer_id, order_number, total_amount, shipping_address, status) VALUES (?, ?, ?, ?, 'pending')");
