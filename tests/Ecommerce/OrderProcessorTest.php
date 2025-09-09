@@ -6,6 +6,7 @@ namespace RefactoringChallenge\Tests\Ecommerce;
 
 use PDO;
 use PHPUnit\Framework\TestCase;
+use RefactoringChallenge\Ecommerce\CartItem;
 use RefactoringChallenge\Ecommerce\OrderProcessor;
 use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
 use RefactoringChallenge\Tests\TestingDatabase;
@@ -26,7 +27,7 @@ class OrderProcessorTest extends TestCase
 
     public function testProcessOrderSuccess()
     {
-        $items = [['product_id' => 99, 'quantity' => 2],];
+        $items = [new CartItem(productId: 99, quantity: 2)];
         $shippingAddress = "Testovací 123, Testov";
 
         $orderId = $this->orderProcessor->processOrder(99, $items, $shippingAddress);

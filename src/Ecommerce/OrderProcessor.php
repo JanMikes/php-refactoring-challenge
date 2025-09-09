@@ -18,22 +18,24 @@ readonly class OrderProcessor
     }
 
     /**
+     * @param list<CartItem> $items
+     *
      * @throws ProductNotFound
      * @throws InsufficientStock
      */
-    public function processOrder($customerId, $items, $shippingAddress)
+    public function processOrder($customerId, array $items, $shippingAddress)
     {
         $orderNumber = 'ORD-' . date('Y') . '-' . rand(1000, 9999);
         $totalAmount = 0;
 
         foreach ($items as $item) {
-            $price = $this->orderQuery->getPrice($item['product_id']);
-            $requestedQuantity = $item['quantity'];
-            $availableStock = $this->inventoryQuery->getStock($item['product_id']);
+            $price = $this->orderQuery->getPrice($item->productId);
+            $requestedQuantity = $item->quantity;
+            $availableStock = $this->inventoryQuery->getStock($item->productId);
 
-            if ($availableStock < $item['quantity']) {
+            if ($availableStock < $item->quantity) {
                 throw new InsufficientStock(
-                    productId: $item['product_id'],
+                    productId: $item->productId,
                     requestedQuantity: $requestedQuantity,
                     stockAvailable: $availableStock,
                 );
@@ -48,22 +50,22 @@ readonly class OrderProcessor
 
         foreach ($items as $item) {
             $stmt = $this->db->prepare("SELECT name, price, sku FROM products WHERE id = ?");
-            $stmt->execute([$item['product_id']]);
+            $stmt->execute([$item->productId]);
             $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
             $stmt = $this->db->prepare("INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, product_name, product_sku) VALUES (?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $orderId,
-                $item['product_id'],
-                $item['quantity'],
+                $item->productId,
+                $item->quantity,
                 $product['price'],
-                $product['price'] * $item['quantity'],
+                $product['price'] * $item->quantity,
                 $product['name'],
                 $product['sku']
             ]);
 
             $stmt = $this->db->prepare("UPDATE inventory SET quantity_available = quantity_available - ?, quantity_reserved = quantity_reserved + ? WHERE product_id = ?");
-            $stmt->execute([$item['quantity'], $item['quantity'], $item['product_id']]);
+            $stmt->execute([$item->quantity, $item->quantity, $item->productId]);
         }
 
         $stmt = $this->db->prepare("INSERT INTO order_logs (order_id, action, new_status, description) VALUES (?, 'created', 'pending', 'Order created')");
