@@ -6,9 +6,17 @@ namespace RefactoringChallenge\Tech\DependencyInjection;
 
 use League\Container\Container;
 use League\Container\ReflectionContainer;
+use League\Event\EventDispatcher;
 use PDO;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use RefactoringChallenge\Ecommerce\Order\OrderCreated;
+use RefactoringChallenge\Ecommerce\Order\OrderStatusChanged;
+use RefactoringChallenge\Events\LogOrderWhenOrderCreated;
+use RefactoringChallenge\Events\LogStatusChangeWhenOrderStatusChanged;
+use RefactoringChallenge\Events\NotifyCustomerWhenOrderStatusChanged;
+use RefactoringChallenge\Events\SendConfirmationEmailWhenOrderCreated;
 use RefactoringChallenge\Notification\Notifier;
 use RefactoringChallenge\Notification\SpyNotifier;
 use RefactoringChallenge\Tech\Database\PDOFactory;
@@ -21,6 +29,9 @@ class ContainerFactory
     {
         $container = new Container();
 
+        // Enable autowiring and autoregistration for known instances
+        $container->delegate(new ReflectionContainer());
+
         $pdoFactory = new PDOFactory([
             'default' => [
                 'host' => self::getEnvAsString('MYSQL_HOST'),
@@ -32,11 +43,18 @@ class ContainerFactory
 
         $container->add(PDOFactory::class, $pdoFactory);
         $container->add(PDO::class, $pdoFactory->create());
+
         $container->add(LoggerInterface::class, new NullLogger());
         $container->add(Notifier::class, new SpyNotifier());
 
-        // Enable autowiring and autoregistration for known instances
-        $container->delegate(new ReflectionContainer());
+        $eventDispatcher = new EventDispatcher();
+        $eventDispatcher->subscribeTo(OrderCreated::class, $container->get(LogOrderWhenOrderCreated::class));
+        $eventDispatcher->subscribeTo(OrderCreated::class, $container->get(SendConfirmationEmailWhenOrderCreated::class));
+        $eventDispatcher->subscribeTo(OrderStatusChanged::class, $container->get(LogStatusChangeWhenOrderStatusChanged::class));
+        $eventDispatcher->subscribeTo(OrderStatusChanged::class, $container->get(NotifyCustomerWhenOrderStatusChanged::class));
+
+        $container->add(EventDispatcher::class, $eventDispatcher);
+        $container->add(EventDispatcherInterface::class, $eventDispatcher);
 
         return $container;
     }
