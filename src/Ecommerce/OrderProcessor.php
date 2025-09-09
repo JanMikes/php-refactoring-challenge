@@ -17,7 +17,7 @@ readonly class OrderProcessor
     public function __construct(
         private PDO $db,
         private LoggerInterface $logger,
-        private ProductQuery $orderQuery,
+        private ProductQuery $productQuery,
         private InventoryQuery $inventoryQuery,
     ) {
     }
@@ -31,42 +31,39 @@ readonly class OrderProcessor
     public function processOrder($customerId, array $items, $shippingAddress)
     {
         $orderNumber = 'ORD-' . date('Y') . '-' . rand(1000, 9999);
-        $totalAmount = 0;
+        $totalAmountInCents = 0;
 
         foreach ($items as $item) {
-            $price = $this->orderQuery->getPrice($item->productId);
-            $requestedQuantity = $item->quantity;
+            $price = $this->productQuery->getPrice($item->productId);
             $availableStock = $this->inventoryQuery->getStock($item->productId);
 
             if ($availableStock < $item->quantity) {
                 throw new InsufficientStock(
                     productId: $item->productId,
-                    requestedQuantity: $requestedQuantity,
+                    requestedQuantity: $item->quantity,
                     stockAvailable: $availableStock,
                 );
             }
 
-            $totalAmount += $price * $requestedQuantity;
+            $totalAmountInCents += MoneyCalculator::multiply($price, $item->quantity);
         }
 
         $stmt = $this->db->prepare("INSERT INTO orders (customer_id, order_number, total_amount, shipping_address, status) VALUES (?, ?, ?, ?, 'pending')");
-        $stmt->execute([$customerId, $orderNumber, $totalAmount, $shippingAddress]);
+        $stmt->execute([$customerId, $orderNumber, MoneyCalculator::toFloat($totalAmountInCents), $shippingAddress]);
         $orderId = $this->db->lastInsertId();
 
         foreach ($items as $item) {
-            $stmt = $this->db->prepare("SELECT name, price, sku FROM products WHERE id = ?");
-            $stmt->execute([$item->productId]);
-            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            $product = $this->productQuery->getById($item->productId);
 
             $stmt = $this->db->prepare("INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, product_name, product_sku) VALUES (?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $orderId,
                 $item->productId,
                 $item->quantity,
-                $product['price'],
-                $product['price'] * $item->quantity,
-                $product['name'],
-                $product['sku']
+                $product->price,
+                MoneyCalculator::toFloat(MoneyCalculator::multiply($product->price, $item->quantity)),
+                $product->name,
+                $product->sku
             ]);
 
             $stmt = $this->db->prepare("UPDATE inventory SET quantity_available = quantity_available - ?, quantity_reserved = quantity_reserved + ? WHERE product_id = ?");

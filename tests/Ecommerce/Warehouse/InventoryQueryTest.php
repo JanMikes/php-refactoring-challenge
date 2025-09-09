@@ -28,8 +28,7 @@ class InventoryQueryTest extends TestCase
         
         $stock = $this->inventoryQuery->getStock($productId);
         
-        $this->assertIsInt($stock);
-        $this->assertGreaterThanOrEqual(0, $stock);
+        $this->assertEquals(10, $stock);
     }
 
     public function testGetStockForNonExistingProduct()
