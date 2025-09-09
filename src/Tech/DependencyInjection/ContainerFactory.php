@@ -17,9 +17,6 @@ class ContainerFactory
     {
         $container = new Container();
 
-        // Enable autowiring
-        $container->delegate(new ReflectionContainer());
-
         $pdoFactory = new PDOFactory([
             'default' => [
                 'host' => getenv('MYSQL_HOST') ?: $_ENV['MYSQL_HOST'],
@@ -31,6 +28,9 @@ class ContainerFactory
 
         $container->add(PDOFactory::class, $pdoFactory);
         $container->add(PDO::class, $pdoFactory->create());
+
+        // Enable autowiring and autoregistration for known instances
+        $container->delegate(new ReflectionContainer());
 
         return $container;
     }

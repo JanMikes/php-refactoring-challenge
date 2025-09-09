@@ -12,14 +12,14 @@ use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
 class OrderProcessorTest extends TestCase
 {
 
-    private $db;
-
-    private $orderProcessor;
+    private PDO $db;
+    private OrderProcessor $orderProcessor;
 
     protected function setUp(): void
     {
         $container = ContainerFactory::get();
         $this->db = $container->get(PDO::class);
+        $this->orderProcessor = $container->get(OrderProcessor::class);
 
         $this->db->exec("DELETE FROM order_logs");
         $this->db->exec("DELETE FROM order_items");
@@ -33,7 +33,6 @@ class OrderProcessorTest extends TestCase
         $this->db->exec("INSERT IGNORE INTO products (id, name, price, sku) VALUES (99, 'Test Produkt', 123.45, 'TEST-99')");
         $this->db->exec("INSERT IGNORE INTO inventory (product_id, quantity_available, quantity_reserved) VALUES (99, 10, 0)");
 
-        $this->orderProcessor = new OrderProcessor($this->db);
     }
 
     public function testProcessOrderSuccess()
