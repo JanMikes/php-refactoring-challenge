@@ -6,7 +6,7 @@ namespace RefactoringChallenge\Tests\Ecommerce;
 
 use PDO;
 use PHPUnit\Framework\TestCase;
-use RefactoringChallenge\Ecommerce\CartItem;
+use RefactoringChallenge\Ecommerce\Cart\CartItem;
 use RefactoringChallenge\Ecommerce\OrderProcessor;
 use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
 use RefactoringChallenge\Tests\TestingDatabase;

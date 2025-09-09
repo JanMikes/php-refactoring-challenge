@@ -2,11 +2,11 @@
 
 declare(strict_types = 1);
 
-namespace RefactoringChallenge\Tests\Ecommerce;
+namespace Ecommerce\Warehouse;
 
 use PHPUnit\Framework\TestCase;
-use RefactoringChallenge\Ecommerce\ProductNotFound;
-use RefactoringChallenge\Ecommerce\ProductQuery;
+use RefactoringChallenge\Ecommerce\Warehouse\ProductNotFound;
+use RefactoringChallenge\Ecommerce\Warehouse\ProductQuery;
 use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
 use RefactoringChallenge\Tests\TestingDatabase;
 

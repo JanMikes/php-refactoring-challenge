@@ -6,6 +6,11 @@ namespace RefactoringChallenge\Ecommerce;
 
 use PDO;
 use Psr\Log\LoggerInterface;
+use RefactoringChallenge\Ecommerce\Cart\CartItem;
+use RefactoringChallenge\Ecommerce\Warehouse\InsufficientStock;
+use RefactoringChallenge\Ecommerce\Warehouse\InventoryQuery;
+use RefactoringChallenge\Ecommerce\Warehouse\ProductNotFound;
+use RefactoringChallenge\Ecommerce\Warehouse\ProductQuery;
 
 readonly class OrderProcessor
 {
