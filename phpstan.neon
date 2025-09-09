@@ -9,4 +9,6 @@ parameters:
         - tests
     excludePaths:
         - tests/bootstrap.php
+    stubFiles:
+        - stubs/Container.stub
     checkUninitializedProperties: true
