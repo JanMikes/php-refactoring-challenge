@@ -13,11 +13,18 @@ readonly final class InventoryQuery
     ) {
     }
 
+    /**
+     * @throws ProductNotFound
+     */
     public function getStock(int $productId): int
     {
         $stmt = $this->pdo->prepare("SELECT quantity_available FROM inventory WHERE product_id = ?");
         $stmt->execute([$productId]);
         $inventory = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($inventory === false) {
+            throw new ProductNotFound($productId);
+        }
 
         return (int) $inventory['quantity_available'];
     }

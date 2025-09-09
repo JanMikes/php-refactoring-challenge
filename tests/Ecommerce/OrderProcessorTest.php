@@ -47,5 +47,4 @@ class OrderProcessorTest extends TestCase
         $this->assertEquals(123.45, $orderItem['unit_price']);
         $this->assertEquals('Test Produkt', $orderItem['product_name']);
     }
-
 }
