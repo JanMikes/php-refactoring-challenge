@@ -11,7 +11,7 @@ use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
 use RefactoringChallenge\Tests\TestingDatabase;
 use RefactoringChallenge\UseCase\PutOrderUseCase;
 
-class PutOrderUseCaseTest extends TestCase
+class PutOrderUseCaseIntegrationTest extends TestCase
 {
     private PDO $db;
     private PutOrderUseCase $orderProcessor;

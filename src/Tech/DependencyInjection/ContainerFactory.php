@@ -20,6 +20,8 @@ use RefactoringChallenge\Events\SendConfirmationEmailWhenOrderCreated;
 use RefactoringChallenge\Notification\Notifier;
 use RefactoringChallenge\Notification\SpyNotifier;
 use RefactoringChallenge\Tech\Database\PDOFactory;
+use RefactoringChallenge\Ecommerce\Order\OrderQuery;
+use RefactoringChallenge\Ecommerce\Order\PDOOrderQuery;
 
 class ContainerFactory
 {
@@ -44,8 +46,8 @@ class ContainerFactory
         $container->add(PDOFactory::class, $pdoFactory);
         $container->add(PDO::class, $pdoFactory->create());
 
-        $container->add(LoggerInterface::class, new NullLogger());
-        $container->add(Notifier::class, new SpyNotifier());
+        $container->add(LoggerInterface::class, NullLogger::class);
+        $container->add(Notifier::class, SpyNotifier::class);
 
         $eventDispatcher = new EventDispatcher();
         $eventDispatcher->subscribeTo(OrderCreated::class, $container->get(LogOrderWhenOrderCreated::class));
@@ -55,6 +57,8 @@ class ContainerFactory
 
         $container->add(EventDispatcher::class, $eventDispatcher);
         $container->add(EventDispatcherInterface::class, $eventDispatcher);
+
+        $container->add(OrderQuery::class, $container->get(PDOOrderQuery::class));
 
         return $container;
     }

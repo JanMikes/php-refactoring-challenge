@@ -5,59 +5,84 @@ declare(strict_types=1);
 namespace RefactoringChallenge\Tests\UseCase;
 
 use PHPUnit\Framework\TestCase;
+use RefactoringChallenge\Ecommerce\Order\DummyOrderQuery;
 use RefactoringChallenge\Ecommerce\Order\OrderNotFound;
-use RefactoringChallenge\Ecommerce\Order\OrderQuery;
 use RefactoringChallenge\Ecommerce\Order\OrderStatus;
 use RefactoringChallenge\Ecommerce\Order\OrderStatusAlreadyChanged;
-use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
-use RefactoringChallenge\Tests\TestingDatabase;
+use RefactoringChallenge\Ecommerce\Order\OrderStatusChanged;
+use RefactoringChallenge\Events\SpyEventDispatcher;
 use RefactoringChallenge\UseCase\ChangeOrderStatusUseCase;
 
-class ChangeOrderStatusUseCaseTest extends TestCase
+final class ChangeOrderStatusUseCaseTest extends TestCase
 {
+    private DummyOrderQuery $orderQuery;
+    private SpyEventDispatcher $eventDispatcher;
     private ChangeOrderStatusUseCase $useCase;
-    private OrderQuery $orderQuery;
 
     protected function setUp(): void
     {
-        $container = ContainerFactory::get();
-        $this->useCase = $container->get(ChangeOrderStatusUseCase::class);
-        $this->orderQuery = $container->get(OrderQuery::class);
-
-        TestingDatabase::prepareFreshData();
+        $this->orderQuery = new DummyOrderQuery();
+        $this->eventDispatcher = new SpyEventDispatcher();
+        $this->useCase = new ChangeOrderStatusUseCase($this->orderQuery, $this->eventDispatcher);
     }
 
-    public function testHandleChangesOrderStatusSuccessfully(): void
+    public function testHandleSuccessfullyChangesOrderStatus(): void
     {
-        $orderId = 99;
+        $orderId = 123;
+        $oldStatus = OrderStatus::Pending;
         $newStatus = OrderStatus::Shipped;
-        
-        $initialStatus = $this->orderQuery->getOrderStatus($orderId);
-        $this->assertEquals(OrderStatus::Pending, $initialStatus);
-        
+
+        $this->orderQuery->addOrder($orderId, $oldStatus);
+
         $this->useCase->handle($orderId, $newStatus);
-        
-        $updatedStatus = $this->orderQuery->getOrderStatus($orderId);
-        $this->assertEquals($newStatus, $updatedStatus);
+
+        self::assertSame($newStatus, $this->orderQuery->getOrderStatus($orderId));
+
+        $events = $this->eventDispatcher->getDispatchedEventsOfType(OrderStatusChanged::class);
+        self::assertCount(1, $events);
+        self::assertSame($orderId, $events[0]->orderId);
+        self::assertSame($oldStatus, $events[0]->oldStatus);
+        self::assertSame($newStatus, $events[0]->newStatus);
     }
 
-    public function testHandleThrowsExceptionWhenStatusIsAlreadyTheSame(): void
+    public function testHandleThrowsOrderNotFoundWhenOrderDoesNotExist(): void
     {
-        $orderId = 99;
-        $currentStatus = $this->orderQuery->getOrderStatus($orderId);
-        
-        $this->expectException(OrderStatusAlreadyChanged::class);
-        
-        $this->useCase->handle($orderId, $currentStatus);
-    }
-
-    public function testHandleThrowsExceptionForNonExistentOrder(): void
-    {
-        $nonExistentOrderId = 999999;
+        $orderId = 999;
         $newStatus = OrderStatus::Shipped;
-        
+
         $this->expectException(OrderNotFound::class);
-        
-        $this->useCase->handle($nonExistentOrderId, $newStatus);
+
+        $this->useCase->handle($orderId, $newStatus);
+    }
+
+    public function testHandleThrowsOrderStatusAlreadyChangedWhenStatusIsSame(): void
+    {
+        $orderId = 123;
+        $status = OrderStatus::Pending;
+
+        $this->orderQuery->addOrder($orderId, $status);
+
+        $this->expectException(OrderStatusAlreadyChanged::class);
+
+        $this->useCase->handle($orderId, $status);
+    }
+
+    public function testHandleDoesNotChangeStatusWhenStatusIsSame(): void
+    {
+        $orderId = 123;
+        $status = OrderStatus::Pending;
+
+        $this->orderQuery->addOrder($orderId, $status);
+
+        try {
+            $this->useCase->handle($orderId, $status);
+        } catch (OrderStatusAlreadyChanged) {
+        }
+
+        self::assertSame($status, $this->orderQuery->getOrderStatus($orderId));
+
+        $events = $this->eventDispatcher->getDispatchedEventsOfType(OrderStatusChanged::class);
+
+        self::assertCount(0, $events);
     }
 }
