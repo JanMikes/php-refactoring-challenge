@@ -6,30 +6,29 @@ namespace RefactoringChallenge;
 
 use PDO;
 use Psr\Log\LoggerInterface;
+use RefactoringChallenge\Order\OrderQuery;
+use RefactoringChallenge\Order\ProductNotFound;
 
 readonly class OrderProcessor
 {
     public function __construct(
         private PDO $db,
         private LoggerInterface $logger,
+        private OrderQuery $orderQuery,
     ) {
     }
 
+    /**
+     * @throws ProductNotFound
+     */
     public function processOrder($customerId, $items, $shippingAddress)
     {
         $orderNumber = 'ORD-' . date('Y') . '-' . rand(1000, 9999);
         $totalAmount = 0;
 
         foreach ($items as $item) {
-            $stmt = $this->db->prepare("SELECT price FROM products WHERE id = ?");
-            $stmt->execute([$item['product_id']]);
-            $product = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if (!$product) {
-                throw new \Exception("Product not found");
-            }
-
-            $totalAmount += $product['price'] * $item['quantity'];
+            $price = $this->orderQuery->getProductPrice($item['product_id']);
+            $totalAmount += $price * $item['quantity'];
 
             $stmt = $this->db->prepare("SELECT quantity_available FROM inventory WHERE product_id = ?");
             $stmt->execute([$item['product_id']]);
