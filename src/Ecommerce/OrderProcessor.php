@@ -7,6 +7,8 @@ namespace RefactoringChallenge\Ecommerce;
 use PDO;
 use Psr\Log\LoggerInterface;
 use RefactoringChallenge\Ecommerce\Cart\CartItem;
+use RefactoringChallenge\Ecommerce\Customer\CustomerNotFound;
+use RefactoringChallenge\Ecommerce\Customer\CustomerQuery;
 use RefactoringChallenge\Ecommerce\Warehouse\InsufficientStock;
 use RefactoringChallenge\Ecommerce\Warehouse\InventoryQuery;
 use RefactoringChallenge\Ecommerce\Warehouse\ProductNotFound;
@@ -19,6 +21,7 @@ readonly class OrderProcessor
         private LoggerInterface $logger,
         private ProductQuery $productQuery,
         private InventoryQuery $inventoryQuery,
+        private CustomerQuery $customerQuery,
         private OrderNumberGenerator $orderNumberGenerator,
     ) {
     }
@@ -28,9 +31,10 @@ readonly class OrderProcessor
      *
      * @throws ProductNotFound
      * @throws InsufficientStock
+     * @throws CustomerNotFound
      * @throws OrderCreationFailed
      */
-    public function processOrder($customerId, array $items, $shippingAddress): int
+    public function processOrder(int $customerId, array $items, string $shippingAddress): int
     {
         $orderNumber = $this->orderNumberGenerator->next();
         $totalAmount = 0;
@@ -83,17 +87,18 @@ readonly class OrderProcessor
 
         $this->sendOrderConfirmationEmail($customerId, $orderId);
 
-        return (int) $orderId;
+        return $orderId;
     }
 
+    /**
+     * @throws CustomerNotFound
+     */
     private function sendOrderConfirmationEmail(int $customerId, int $orderId): void
     {
-        $stmt = $this->db->prepare("SELECT email, first_name FROM customers WHERE id = ?");
-        $stmt->execute([$customerId]);
-        $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+        $customer = $this->customerQuery->getById($customerId);
 
         $this->logger->info('Sending email', [
-            'email' => $customer['email'],
+            'email' => $customer->email,
             'orderId' => $orderId,
         ]);
     }
