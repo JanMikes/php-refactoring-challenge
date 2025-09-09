@@ -7,6 +7,7 @@ namespace RefactoringChallenge\Tests;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use RefactoringChallenge\OrderProcessor;
+use RefactoringChallenge\Tech\Database\PDOFactory;
 
 class OrderProcessorTest extends TestCase
 {
@@ -17,12 +18,7 @@ class OrderProcessorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->db = new PDO(
-            'mysql:host=' . (getenv('MYSQL_HOST') ?: $_ENV['MYSQL_HOST']) . ';dbname=' . (getenv('MYSQL_DATABASE') ?: $_ENV['MYSQL_DATABASE']),
-            getenv('MYSQL_USER') ?: $_ENV['MYSQL_USER'],
-            getenv('MYSQL_PASSWORD') ?: $_ENV['MYSQL_PASSWORD']
-        );
-        $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->db = (new PDOFactory())->create();
 
         $this->db->exec("DELETE FROM order_logs");
         $this->db->exec("DELETE FROM order_items");
@@ -36,7 +32,7 @@ class OrderProcessorTest extends TestCase
         $this->db->exec("INSERT IGNORE INTO products (id, name, price, sku) VALUES (99, 'Test Produkt', 123.45, 'TEST-99')");
         $this->db->exec("INSERT IGNORE INTO inventory (product_id, quantity_available, quantity_reserved) VALUES (99, 10, 0)");
 
-        $this->orderProcessor = new OrderProcessor();
+        $this->orderProcessor = new OrderProcessor($this->db);
     }
 
     public function testProcessOrderSuccess()

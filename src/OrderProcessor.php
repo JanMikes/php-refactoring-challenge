@@ -6,18 +6,11 @@ namespace RefactoringChallenge;
 
 use PDO;
 
-class OrderProcessor
+readonly class OrderProcessor
 {
-    private $db;
-
-    public function __construct()
-    {
-        $this->db = new PDO(
-            'mysql:host=' . (getenv('MYSQL_HOST') ?: $_ENV['MYSQL_HOST']) . ';dbname=' . (getenv('MYSQL_DATABASE') ?: $_ENV['MYSQL_DATABASE']),
-            getenv('MYSQL_USER') ?: $_ENV['MYSQL_USER'],
-            getenv('MYSQL_PASSWORD') ?: $_ENV['MYSQL_PASSWORD']
-        );
-        $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    public function __construct(
+        private PDO $db,
+    ) {
     }
 
     public function processOrder($customerId, $items, $shippingAddress)
