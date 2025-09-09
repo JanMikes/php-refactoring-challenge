@@ -19,6 +19,7 @@ readonly class OrderProcessor
         private LoggerInterface $logger,
         private ProductQuery $productQuery,
         private InventoryQuery $inventoryQuery,
+        private OrderNumberGenerator $orderNumberGenerator,
     ) {
     }
 
@@ -31,7 +32,7 @@ readonly class OrderProcessor
      */
     public function processOrder($customerId, array $items, $shippingAddress): int
     {
-        $orderNumber = 'ORD-' . date('Y') . '-' . rand(1000, 9999);
+        $orderNumber = $this->orderNumberGenerator->next();
         $totalAmount = 0;
 
         foreach ($items as $item) {
@@ -49,8 +50,8 @@ readonly class OrderProcessor
             $totalAmount += MoneyCalculator::multiply($price, $item->quantity);
         }
 
-        $stmt = $this->db->prepare("INSERT INTO orders (customer_id, order_number, total_amount, shipping_address, status) VALUES (?, ?, ?, ?, 'pending')");
-        $stmt->execute([$customerId, $orderNumber, $totalAmount, $shippingAddress]);
+        $stmt = $this->db->prepare("INSERT INTO orders (customer_id, order_number, total_amount, shipping_address, status) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$customerId, $orderNumber, $totalAmount, $shippingAddress, OrderStatus::Pending->value]);
         $lastInsertedId = $this->db->lastInsertId();
 
         if ($lastInsertedId === false) {
@@ -97,7 +98,7 @@ readonly class OrderProcessor
         ]);
     }
 
-    public function updateOrderStatus(int $orderId, OrderStatus $newStatus)
+    public function updateOrderStatus(int $orderId, OrderStatus $newStatus): void
     {
         $stmt = $this->db->prepare("SELECT status FROM orders WHERE id = ?");
         $stmt->execute([$orderId]);
