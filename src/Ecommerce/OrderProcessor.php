@@ -27,8 +27,9 @@ readonly class OrderProcessor
      *
      * @throws ProductNotFound
      * @throws InsufficientStock
+     * @throws OrderCreationFailed
      */
-    public function processOrder($customerId, array $items, $shippingAddress)
+    public function processOrder($customerId, array $items, $shippingAddress): int
     {
         $orderNumber = 'ORD-' . date('Y') . '-' . rand(1000, 9999);
         $totalAmount = 0;
@@ -50,7 +51,13 @@ readonly class OrderProcessor
 
         $stmt = $this->db->prepare("INSERT INTO orders (customer_id, order_number, total_amount, shipping_address, status) VALUES (?, ?, ?, ?, 'pending')");
         $stmt->execute([$customerId, $orderNumber, $totalAmount, $shippingAddress]);
-        $orderId = $this->db->lastInsertId();
+        $lastInsertedId = $this->db->lastInsertId();
+
+        if ($lastInsertedId === false) {
+            throw new OrderCreationFailed();
+        }
+
+        $orderId = (int) $lastInsertedId;
 
         foreach ($items as $item) {
             $product = $this->productQuery->getById($item->productId);
@@ -75,10 +82,10 @@ readonly class OrderProcessor
 
         $this->sendOrderConfirmationEmail($customerId, $orderId);
 
-        return $orderId;
+        return (int) $orderId;
     }
 
-    private function sendOrderConfirmationEmail($customerId, $orderId): void
+    private function sendOrderConfirmationEmail(int $customerId, int $orderId): void
     {
         $stmt = $this->db->prepare("SELECT email, first_name FROM customers WHERE id = ?");
         $stmt->execute([$customerId]);
@@ -90,7 +97,7 @@ readonly class OrderProcessor
         ]);
     }
 
-    public function updateOrderStatus($orderId, $newStatus)
+    public function updateOrderStatus(int $orderId, OrderStatus $newStatus)
     {
         $stmt = $this->db->prepare("SELECT status FROM orders WHERE id = ?");
         $stmt->execute([$orderId]);
@@ -100,15 +107,15 @@ readonly class OrderProcessor
             throw new \Exception("Order not found");
         }
 
-        $oldStatus = $order['status'];
+        $oldStatus = OrderStatus::from($order['status']);
 
         $stmt = $this->db->prepare("UPDATE orders SET status = ? WHERE id = ?");
-        $stmt->execute([$newStatus, $orderId]);
+        $stmt->execute([$newStatus->value, $orderId]);
 
         $stmt = $this->db->prepare("INSERT INTO order_logs (order_id, action, old_status, new_status, description) VALUES (?, 'status_change', ?, ?, 'Status updated')");
         $stmt->execute([$orderId, $oldStatus, $newStatus]);
 
-        if ($newStatus === 'shipped') {
+        if ($newStatus === OrderStatus::Shipped) {
             $this->sendShippingNotification($orderId);
         }
     }
