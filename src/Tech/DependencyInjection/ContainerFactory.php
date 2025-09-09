@@ -21,10 +21,10 @@ class ContainerFactory
 
         $pdoFactory = new PDOFactory([
             'default' => [
-                'host' => getenv('MYSQL_HOST') ?: $_ENV['MYSQL_HOST'],
-                'database' => getenv('MYSQL_DATABASE') ?: $_ENV['MYSQL_DATABASE'],
-                'user' => getenv('MYSQL_USER') ?: $_ENV['MYSQL_USER'],
-                'password' => getenv('MYSQL_PASSWORD') ?: $_ENV['MYSQL_PASSWORD'],
+                'host' => self::getEnvAsString('MYSQL_HOST'),
+                'database' => self::getEnvAsString('MYSQL_DATABASE'),
+                'user' => self::getEnvAsString('MYSQL_USER'),
+                'password' => self::getEnvAsString('MYSQL_PASSWORD'),
             ],
         ]);
 
@@ -45,5 +45,13 @@ class ContainerFactory
         }
 
         return self::$container;
+    }
+
+    private static function getEnvAsString(string $envName): string
+    {
+        /** @var null|string|int|float $env */
+        $env = getenv($envName) ?: $_ENV[$envName];
+
+        return (string) $env;
     }
 }

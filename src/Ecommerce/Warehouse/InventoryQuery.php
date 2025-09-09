@@ -20,12 +20,18 @@ readonly final class InventoryQuery
     {
         $stmt = $this->pdo->prepare("SELECT quantity_available FROM inventory WHERE product_id = ?");
         $stmt->execute([$productId]);
-        $inventory = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($inventory === false) {
+        /**
+         * @var false|array{
+         *     quantity_available: int,
+         * } $data
+         */
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($data === false) {
             throw new ProductNotFound($productId);
         }
 
-        return (int) $inventory['quantity_available'];
+        return $data['quantity_available'];
     }
 }

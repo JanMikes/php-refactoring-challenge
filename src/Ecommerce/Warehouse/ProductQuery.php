@@ -21,17 +21,25 @@ readonly final class ProductQuery
         $stmt = $this->pdo->prepare("SELECT id, name, price, sku FROM products WHERE id = ?");
         $stmt->execute([$productId]);
 
-        $productData = $stmt->fetch(PDO::FETCH_ASSOC);
+        /**
+         * @var false|array{
+         *     id: int,
+         *     name: string,
+         *     price: numeric-string,
+         *     sku: string,
+         * } $data
+         */
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($productData === false) {
+        if ($data === false) {
             throw new ProductNotFound($productId);
         }
 
         return new Product(
-            id: (int) $productData['id'],
-            name: $productData['name'],
-            price: (float) $productData['price'],
-            sku: $productData['sku'],
+            id: $data['id'],
+            name: $data['name'],
+            price: (float) $data['price'],
+            sku: $data['sku'],
         );
     }
 
@@ -43,12 +51,17 @@ readonly final class ProductQuery
         $stmt = $this->pdo->prepare("SELECT price FROM products WHERE id = ?");
         $stmt->execute([$productId]);
 
-        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+        /**
+         * @var false|array{
+         *     price: numeric-string,
+         * } $data
+         */
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($product === false) {
+        if ($data === false) {
             throw new ProductNotFound($productId);
         }
 
-        return (float) $product['price'];
+        return (float) $data['price'];
     }
 }
