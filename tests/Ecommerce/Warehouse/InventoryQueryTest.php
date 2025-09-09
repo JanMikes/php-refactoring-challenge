@@ -22,7 +22,7 @@ class InventoryQueryTest extends TestCase
         TestingDatabase::prepareFreshData();
     }
 
-    public function testGetStockReturnsCorrectQuantity()
+    public function testGetStockReturnsCorrectQuantity(): void
     {
         $productId = 99;
         
@@ -31,7 +31,7 @@ class InventoryQueryTest extends TestCase
         $this->assertEquals(10, $stock);
     }
 
-    public function testGetStockForNonExistingProduct()
+    public function testGetStockForNonExistingProduct(): void
     {
         $nonExistingProductId = 999999;
 

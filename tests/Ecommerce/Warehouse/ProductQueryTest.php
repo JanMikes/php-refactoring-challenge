@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace Ecommerce\Warehouse;
 
 use PHPUnit\Framework\TestCase;
-use RefactoringChallenge\Ecommerce\Warehouse\Product;
 use RefactoringChallenge\Ecommerce\Warehouse\ProductNotFound;
 use RefactoringChallenge\Ecommerce\Warehouse\ProductQuery;
 use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
@@ -23,7 +22,7 @@ class ProductQueryTest extends TestCase
         TestingDatabase::prepareFreshData();
     }
 
-    public function testGetPriceReturnsCorrectPrice()
+    public function testGetPriceReturnsCorrectPrice(): void
     {
         $productId = 99;
         
@@ -32,7 +31,7 @@ class ProductQueryTest extends TestCase
         $this->assertEquals(123.45, $price);
     }
 
-    public function testGetPriceThrowsExceptionForNonExistingProduct()
+    public function testGetPriceThrowsExceptionForNonExistingProduct(): void
     {
         $nonExistingProductId = 999999;
         
@@ -41,7 +40,7 @@ class ProductQueryTest extends TestCase
         $this->productQuery->getPrice($nonExistingProductId);
     }
 
-    public function testGetByIdReturnsCorrectProduct()
+    public function testGetByIdReturnsCorrectProduct(): void
     {
         $productId = 99;
         
@@ -53,7 +52,7 @@ class ProductQueryTest extends TestCase
         $this->assertEquals('TEST-99', $product->sku);
     }
 
-    public function testGetByIdThrowsExceptionForNonExistingProduct()
+    public function testGetByIdThrowsExceptionForNonExistingProduct(): void
     {
         $nonExistingProductId = 999999;
         

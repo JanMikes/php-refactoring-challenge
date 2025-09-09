@@ -25,7 +25,7 @@ class OrderProcessorTest extends TestCase
         TestingDatabase::prepareFreshData();
     }
 
-    public function testProcessOrderSuccess()
+    public function testProcessOrderSuccess(): void
     {
         $items = [new CartItem(productId: 99, quantity: 2)];
         $shippingAddress = "Testovací 123, Testov";

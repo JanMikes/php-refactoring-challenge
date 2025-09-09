@@ -8,14 +8,14 @@ final class MoneyCalculator
 {
     private const SCALE = 100;
 
-    public static function multiply(float $price, int $quantity): int
+    public static function multiply(float $price, int $quantity): float
     {
         $priceInCents = (int) round($price * self::SCALE);
         
-        return $priceInCents * $quantity;
+        return self::toFloat($priceInCents * $quantity);
     }
 
-    public static function toFloat(int $amountInCents): float
+    private static function toFloat(int $amountInCents): float
     {
         return $amountInCents / self::SCALE;
     }

@@ -31,7 +31,7 @@ readonly class OrderProcessor
     public function processOrder($customerId, array $items, $shippingAddress)
     {
         $orderNumber = 'ORD-' . date('Y') . '-' . rand(1000, 9999);
-        $totalAmountInCents = 0;
+        $totalAmount = 0;
 
         foreach ($items as $item) {
             $price = $this->productQuery->getPrice($item->productId);
@@ -45,11 +45,11 @@ readonly class OrderProcessor
                 );
             }
 
-            $totalAmountInCents += MoneyCalculator::multiply($price, $item->quantity);
+            $totalAmount += MoneyCalculator::multiply($price, $item->quantity);
         }
 
         $stmt = $this->db->prepare("INSERT INTO orders (customer_id, order_number, total_amount, shipping_address, status) VALUES (?, ?, ?, ?, 'pending')");
-        $stmt->execute([$customerId, $orderNumber, MoneyCalculator::toFloat($totalAmountInCents), $shippingAddress]);
+        $stmt->execute([$customerId, $orderNumber, $totalAmount, $shippingAddress]);
         $orderId = $this->db->lastInsertId();
 
         foreach ($items as $item) {
@@ -61,7 +61,7 @@ readonly class OrderProcessor
                 $item->productId,
                 $item->quantity,
                 $product->price,
-                MoneyCalculator::toFloat(MoneyCalculator::multiply($product->price, $item->quantity)),
+                MoneyCalculator::multiply($product->price, $item->quantity),
                 $product->name,
                 $product->sku
             ]);
