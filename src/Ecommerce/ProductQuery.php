@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace RefactoringChallenge\Order;
+namespace RefactoringChallenge\Ecommerce;
 
 use PDO;
 
-readonly final class OrderQuery
+readonly final class ProductQuery
 {
     public function __construct(
         private PDO $pdo,
@@ -16,7 +16,7 @@ readonly final class OrderQuery
     /**
      * @throws ProductNotFound
      */
-    public function getProductPrice(int $productId): float
+    public function getPrice(int $productId): float
     {
         $stmt = $this->pdo->prepare("SELECT price FROM products WHERE id = ?");
         $stmt->execute([$productId]);

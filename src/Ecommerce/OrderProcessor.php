@@ -2,19 +2,17 @@
 
 declare(strict_types = 1);
 
-namespace RefactoringChallenge;
+namespace RefactoringChallenge\Ecommerce;
 
 use PDO;
 use Psr\Log\LoggerInterface;
-use RefactoringChallenge\Order\OrderQuery;
-use RefactoringChallenge\Order\ProductNotFound;
 
 readonly class OrderProcessor
 {
     public function __construct(
         private PDO $db,
         private LoggerInterface $logger,
-        private OrderQuery $orderQuery,
+        private ProductQuery $orderQuery,
     ) {
     }
 
@@ -27,7 +25,7 @@ readonly class OrderProcessor
         $totalAmount = 0;
 
         foreach ($items as $item) {
-            $price = $this->orderQuery->getProductPrice($item['product_id']);
+            $price = $this->orderQuery->getPrice($item['product_id']);
             $totalAmount += $price * $item['quantity'];
 
             $stmt = $this->db->prepare("SELECT quantity_available FROM inventory WHERE product_id = ?");

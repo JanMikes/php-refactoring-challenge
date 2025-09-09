@@ -2,11 +2,11 @@
 
 declare(strict_types = 1);
 
-namespace RefactoringChallenge\Tests;
+namespace RefactoringChallenge\Tests\Ecommerce;
 
 use PDO;
 use PHPUnit\Framework\TestCase;
-use RefactoringChallenge\OrderProcessor;
+use RefactoringChallenge\Ecommerce\OrderProcessor;
 use RefactoringChallenge\Tech\DependencyInjection\ContainerFactory;
 
 class OrderProcessorTest extends TestCase

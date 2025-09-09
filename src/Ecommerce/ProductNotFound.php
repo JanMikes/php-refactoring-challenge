@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace RefactoringChallenge\Order;
+namespace RefactoringChallenge\Ecommerce;
 
 use Exception;
 use Throwable;
